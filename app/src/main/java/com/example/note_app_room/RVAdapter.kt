@@ -10,6 +10,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RVAdapter(private val rv: ArrayList<Note>, val cont: Context): RecyclerView.Adapter<RVAdapter.ItemViewHolder>()  {
     val db= NoteDB.getInstance(cont).NoteDao()
@@ -32,7 +35,9 @@ class RVAdapter(private val rv: ArrayList<Note>, val cont: Context): RecyclerVie
                 alert(rv[position])
             }
             del.setOnClickListener{
-                db.deleteNote(rv[position])
+                CoroutineScope(Dispatchers.IO).launch {
+                    db.deleteNote(rv[position])
+                }
                 if(cont is MainActivity)
                     cont.setuprvdata()
             }
@@ -49,7 +54,7 @@ class RVAdapter(private val rv: ArrayList<Note>, val cont: Context): RecyclerVie
         d.setCancelable(false)
         var Ed= EditText(cont)
         d.setPositiveButton("Change") { _, _ ->
-            n.note = Ed.text.toString();db.addeditNote(n);if(cont is MainActivity)cont.setuprvdata()
+            n.note = Ed.text.toString();CoroutineScope(Dispatchers.IO).launch {db.addeditNote(n)};if(cont is MainActivity)cont.setuprvdata()
         }
             .setNegativeButton("Cancel") { d, _ -> d.cancel() }
         d.setView(Ed)
